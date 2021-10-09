@@ -1,4 +1,8 @@
-<?php include('partials/menu.php'); ?>
+<?php
+    require '../config/constants.php';
+?>
+
+<?php require __DIR__ . '/partials/menu.php';  ?>
 
 <div class="content">
 	<div class="wrapper">
@@ -46,50 +50,37 @@
 	</div>
 </div>
 
-<?php include('partials/footer.php'); ?>
+
 
 <?php
 	//Process the Value from Form and Save it in Database
 
 	//Check whether the submit button is clicked or not
 	
-	if(isset($_POST['submit']))
-	{
+	if(isset($_POST['submit'])){
 
 	//Get the data from Form
-	$full_name	= $_POST['full_name'];
-	$username 	= $_POST['username'];
-	$password	= md5($_POST['password']); 
+		$full_name	= $_POST['full_name'];
+		$username 	= $_POST['username'];
+		$password	= md5($_POST['password']); 
 
-	//SQL Query to Save data into Database
-	$sql	= "INSERT INTO tbl_admin SET
-			full_name = '$full_name',
-			username  = '$username',
-			password  = '$password'
-	";
+		//SQL Query to Save data into Database
+		$result = $db->col_admin->insertOne([
+		    'full_name' => $full_name,
+		    'username' => $username,
+		    'password' => $password
+		]);
 
-	//Executing SQL Query and Saving Data into Database
-	$res = mysqli_query($conn, $sql) or die(mysqli_error());
-
-	//Check whether the (Query is Executed) data is inserted or not and display appropiate message
-	if($res==true)
-	{
-		//Data intersted
-		//echo "Data interested";
-		//Create a Session Variable to Display Message
-		$_SESSION['add'] = "Admin Add Successfully";
-		//Redirect page to Manage Admin
-		header("location:".SITEURL.'admin/manage-admin.php');
+		if($result->getInsertedCount() > 0){
+			$_SESSION['add'] = "Admin Add Successfully";
+			//Redirect page to Manage Admin
+			header('location: ./manage-admin.php');
+		}else{
+			$_SESSION['add'] = "Failed to Add Admin";
+			//Redirect page to Manage Admin
+			header('location: ./manage-admin.php');
+		}
 	}
-	else
-	{
-		//Failed to Insert Data
-		//echo "Failed to Insert Data";
-		//Create a Session Variable to Display Message
-		$_SESSION['add'] = "Failed to Add Admin";
-		//Redirect page to Manage Admin
-		header("location:".SITEURL.'admin/manage-admin.php');
-	}
-
-	 }
 ?>
+
+<?php require __DIR__ . '/partials/footer.php';  ?>

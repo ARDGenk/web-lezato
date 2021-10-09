@@ -1,0 +1,12 @@
+{
+    "name": "azus/web-lezato",
+    "authors": [
+        {
+            "name": "kyoo",
+            "email": "almrilhamm@gmail.com"
+        }
+    ],
+    "require": {
+        "mongodb/mongodb": "^1.9"
+    }
+}

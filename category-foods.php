@@ -1,18 +1,25 @@
-    <?php include('partials-front/menu.php'); ?>
+<?php
+    require __DIR__ . '/config/constants.php';
+
+    require __DIR__ . '/partials-front/menu.php'; 
+
+    use MongoDB\BSON\ObjectId;
+?>
 
     <?php  
         if(isset($_GET['category_id']))
         {
-            $category_id = $_GET['category_id'];
+            $category_id = new ObjectId($_GET['category_id']);
             
-            $sql = "SELECT title FROM tbl_category WHERE id=$category_id";
-            $res = mysqli_query($conn, $sql);
-            $row = mysqli_fetch_assoc($res);
-            $category_title = $row['title'];
+            $cursor = $db->col_category->findOne([
+                '_id' => $category_id
+            ]);
+
+            $category_title = $cursor['title'];
         }
         else
         {
-            header('location:'.SITEURL);
+            header('location: ./');
         }
     ?>
 
@@ -33,55 +40,47 @@
         <div class="container">
             
             <?php  
-                $sql2 = "SELECT * FROM tbl_food WHERE category_id=$category_id";
-                $res2 = mysqli_query($conn, $sql2);
-                $count2 = mysqli_num_rows($res2);
+                $cursor = $db->col_food->find([
+                    'category_id' => strval($category_id)
+                ]);
 
-                if($count2>0)
-                {
-                    while($row2=mysqli_fetch_assoc($res2))
-                    {
-                        $id = $row2['id'];
-                        $title = $row2['title'];
-                        $price = $row2['price'];
-                        $description = $row2['description'];
-                        $image_name = $row2['image_name'];
-                        ?>
+                if(count($cursor->toArray()) > 0):
+                     $cursor = $db->col_food->find([
+                        'category_id' => strval($category_id)
+                    ]);
+
+                    foreach ($cursor as $data):
+            ?>
                         <div class="food-menu-box">
-                        <div class="food-menu-img">
-                            <?php  
-                                if($image_name=="")
-                                {
-                                    echo "<div class='error'>Image Not Available</div>";
-                                }
-                                else
-                                {
-                                    ?>
-                                    <img src="<?php echo SITEURL; ?>images/category/<?php echo $image_name; ?>" alt="Chicke Hawain Pizza" class="img-responsive img-curve">
-                                    <?php
-                                }
-                            ?>
-                            
-                        </div>
+                            <div class="food-menu-img">
+                                <?php  
+                                    if($data['image_name']==""):
+                                        echo "<div class='error'>Image Not Available</div>";
+                                    else:
+                                ?>
+                                        <img src="./images/food/<?php echo $data['image_name'];?>" alt="Chicke Hawain Pizza" class="img-responsive img-curve">
+                                <?php
+                                    endif;
+                                ?>
+                                
+                            </div>
 
-                        <div class="food-menu-desc">
-                            <h4><?php echo $title; ?></h4>
-                            <p class="food-price"><?php echo $price; ?></p>
-                            <p class="food-detail">
-                                <?php echo $description; ?>
-                            </p>
-                            <br>
-
-                            <a href="<?php echo SITEURL; ?>order.php?food_id=<?php echo $id; ?>" class="btn btn-primary">Order Now</a>
+                            <div class="food-menu-desc">
+                                <h4><?php echo $data['title']; ?></h4>
+                                <p class="food-price"><?php echo $data['price']; ?></p>
+                                <p class="food-detail">
+                                    <?php echo $data['description']; ?>
+                                </p>
+                                <br>
+                                
+                                <a href="#">WA CUY</a>
+                            </div>
                         </div>
-                        </div>
-                        <?php
-                    }
-                }
-                else
-                {
+            <?php
+                    endforeach;
+                else:
                     echo "<div class='error'>Food Not Available</div>";
-                }
+                endif;
             ?>
 
             <div class="clearfix"></div>
@@ -93,4 +92,4 @@
     </section>
     <!-- Food Menu Section Ends Here -->
 
-    <?php include('partials-front/footer.php'); ?>
+<?php require __DIR__ . '/partials-front/footer.php'; ?>

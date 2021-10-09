@@ -1,4 +1,8 @@
-<?php include('partials/menu.php'); ?>
+<?php
+    require '../config/constants.php';
+?>
+
+<?php require __DIR__ . '/partials/menu.php';  ?>
 	
 	<!-- Content -->
 	<div class="content">
@@ -48,7 +52,7 @@
 			<br><br>
 
 		<!-- Admin -->
-		<a href="add-admin.php" class="btn-primary">Add Admin</a>
+		<a href="./add-admin.php" class="btn-primary">Add Admin</a>
 		<br />
 		<!-- End Admin -->
 
@@ -60,55 +64,29 @@
 				<th>Actions</th>
 			</tr>
 
-			<?php 
-				//Query to Get All Admin
-				$sql = "SELECT * FROM tbl_admin";
-				//Execute the Query
-				$res = mysqli_query($conn, $sql);
-				//Check whether the Query is Executed or Not
-				if($res==TRUE)
-				{
-					// Count Rows to Check whether we have data in database or not
-					$rows = mysqli_num_rows($res); //Function to get all the rows in database
-
-					$sn=1; // Create a Variable and Assign the value
-					// Check the num of rows
-					if($rows)
-					{
-						// We have data in database
-						while($rows=mysqli_fetch_assoc($res))
-						{
-							// Using while loop to get all data from database
-							// And while loop will run as long as we have data in database
-
-							// Get individual data
-							$id=$rows['id'];
-							$full_name=$rows['full_name'];
-							$username=$rows['username'];
-
-							// Display the values in our table
-						?>
-
+			<?php
+				$cursor = $db->col_admin->find([]);
+				if(count($cursor->toArray()) > 0):
+					$sn = 1;
+					$cursor = $db->col_admin->find([]);
+					foreach ($cursor as $data):
+			?>
 						<tr>
-						<td><?php echo $sn++; ?></td>
-						<td><?php echo $full_name; ?></td>
-						<td><?php echo $username; ?></td>
-						<td>
-							<a href="<?php echo SITEURL; ?>admin/update-password.php?id=<?php echo $id; ?>" class="btn-danger">Change Password</a>
-							<a href="<?php echo SITEURL; ?>admin/update-admin.php?id=<?php echo $id; ?>" class="btn-secondary">Update Admin</a>
-							<a href="<?php echo SITEURL; ?>admin/delete-admin.php?id=<?php echo $id; ?>" class="btn-danger">Delete Admin</a>
+							<td><?php echo $sn++; ?></td>
+							<td><?php echo $data['full_name']; ?></td>
+							<td><?php echo $data['username']; ?></td>
+							<td>
+								<a href="./update-password.php?id=<?php echo strval($data['_id']); ?>" class="btn-danger">Change Password</a>
+								<a href="./update-admin.php?id=<?php echo strval($data['_id']); ?>" class="btn-secondary">Update Admin</a>
+								<a href="./delete-admin.php?id=<?php echo strval($data['_id']); ?>" class="btn-danger">Delete Admin</a>
 							</td>
 						</tr>
 
-						<?php
-						
-						}
-					}
-					else
-					{
+			<?php
+					endforeach;
+				else:
 						// We do not data in database
-					}
-				}
+				endif;
 
 			?>
 			<!-- <tr>
@@ -129,4 +107,4 @@
 	</div>
 	<!-- Content End -->
 
-<?php include('partials/footer.php'); ?>
+<?php require __DIR__ . '/partials/footer.php';  ?>

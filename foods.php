@@ -1,10 +1,14 @@
-<?php include('partials-front/menu.php'); ?>
+<?php
+    require __DIR__ . '/config/constants.php';
+
+    require __DIR__ . '/partials-front/menu.php'; 
+?>
 
     <!-- fOOD sEARCH Section Starts Here -->
     <section class="food-search text-center">
         <div class="container">
             
-            <form action="<?php echo SITEURL; ?>food-search.php" method="POST">
+            <form action="./food-search.php" method="POST">
                 <input type="search" name="search" placeholder="Search for Food.." required>
                 <input type="submit" name="submit" value="Search" class="btn btn-primary">
             </form>
@@ -20,61 +24,48 @@
         <div class="container">
             <h2 class="text-center">Food Menu</h2>
 
-            <?php  
-                $sql = "SELECT * FROM tbl_food WHERE active='Yes'";
-                $res = mysqli_query($conn, $sql);
-                $count = mysqli_num_rows($res);
+            <?php
+                $cursor = $db->col_food->find([
+                    'active' => 'Yes'
+                ]);
 
-                if ($count>0)
-                {
-                    while($row = mysqli_fetch_assoc($res))
-                    {
-                        $id = $row['id'];
-                        $title = $row['title'];
-                        $description = $row['description'];
-                        $price = $row['price'];
-                        $image_name = $row['image_name'];
-                        ?>
-
-                        <div class="food-menu-box">
-                        <div class="food-menu-img">
-                            <?php  
-                                if($image_name=="")
-                                {
-                                    echo "<div class='error'>Image Not Available</div>";
-                                }
-                                else
-                                {
-                                    ?>
-                                      <img src="<?php echo SITEURL; ?>images/food/<?php echo $image_name; ?>" alt="Chicke Hawain Pizza" class="img-responsive img-curve">  
-                                    <?php
-                                }
-                            ?>
-                            
-                        </div>
-
-                        <div class="food-menu-desc">
-                            <h4><?php echo $title; ?></h4>
-                            <p class="food-price"><?php echo $price; ?></p>
-                            <p class="food-detail">
-                                <?php echo $description; ?>
-                            </p>
-                            <br>
-
-                            <a href="<?php echo SITEURL; ?>order.php?food_id=<?php echo $id; ?>" class="btn btn-primary">Order Now</a>
-                        </div>
-                        </div>
-
-                        <?php
-                    }
-                }
-                else
-                {
-                    echo "<div class='error'>Image Not Available</div>";
-                }
+                if(count($cursor->toArray()) > 0):
+                    $cursor = $db->col_food->find([
+                        'active' => 'Yes'
+                    ]);
+                    foreach ($cursor as $data):
             ?>
+                        <div class="food-menu-box">
+                            <div class="food-menu-img">
+                                <?php  
+                                    if($data['image_name'] == ""):
+                                        echo "<div class='error'>Image Not Available</div>";
+                                    else:
+                                ?>
+                                          <img src="./images/food/<?php echo $data['image_name']; ?>" alt="Chicke Hawain Pizza" class="img-responsive img-curve">  
+                                <?php
+                                    endif;
+                                ?>
+                                
+                            </div>
+                            <div class="food-menu-desc">
+                                <h4><?php echo $data['title']; ?></h4>
+                                <p class="food-price"><?php echo $data['price']; ?></p>
+                                <p class="food-detail">
+                                    <?php echo $data['description']; ?>
+                                </p>
+                                <br>
+                                <!-- <a href="./order.php?food_id=<?php echo strval($data['_id']); ?>" class="btn btn-primary">Order Now</a> -->
+                                <a href="#">WA CUY</a>
+                            </div>
+                        </div>
 
-
+            <?php
+                    endforeach;
+                else:
+                    echo "<div class='error'>Image Not Available</div>";
+                endif;
+            ?>
             <div class="clearfix"></div>
 
             

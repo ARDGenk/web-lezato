@@ -1,5 +1,10 @@
-<?php include('partials/menu.php'); ?>
+<?php 
+	require __DIR__ . '/partials/menu.php';
 
+	require '../config/constants.php';
+
+	use MongoDB\BSON\ObjectId;
+?>
 	<div class="content">
 		<div class="wrapper">
 			<h1>Update Category</h1>
@@ -9,28 +14,27 @@
 
 				if (isset($_GET['id'])) 
 				{
-					$id = $_GET['id'];
-					$sql = "SELECT * FROM tbl_category WHERE id=$id";
-					$res = mysqli_query($conn, $sql);
+					$id = new ObjectId($_GET['id']);
+					$cursor = $db->col_category->findOne([
+						'_id' => $id
+					]);
 
-					$count = mysqli_num_rows($res);
-					if ($count==1) 
+					if ($cursor) 
 					{
-						$row = mysqli_fetch_assoc($res);
-						$title = $row['title'];
-						$current_image = $row['image_name'];
-						$featured = $row['featured'];
-						$active = $row['active'];	
+						$title = $cursor['title'];
+						$current_image = $cursor['image_name'];
+						$featured = $cursor['featured'];
+						$active = $cursor['active'];	
 					}
 					else
 					{
 						$_SESSION['no-found-category'] = "<div class='error'>Category Not Found</div>";
-						header("location:".SITEURL.'admin/manage-category.php');
+						header('location: ./manage-category.php');
 					}
 				}
 				else
 				{
-					header("location:".SITEURL.'admin/manage-category.php');
+					header('location: ./manage-category.php');
 				}
 
 			?>
@@ -53,7 +57,7 @@
 							if ($current_image !="") 
 							{
 								?>
-									<img src="<?php echo SITEURL; ?>images/category/<?php echo $current_image; ?>" width="150px">
+									<img src="./../images/category/<?php echo $current_image; ?>" width="150px">
 								<?php
 							}
 							else
@@ -91,7 +95,7 @@
 					<tr>
 						<td>
 						<input type="hidden" name="current_image" value="<?php echo $current_image; ?>">
-						<input type="hidden" name="id" value="<?php echo $id; ?>">
+						<input type="hidden" name="id" value="<?php echo strval($id); ?>">
 						<input type="submit" name="submit" value="Update Category" class="btn-secondary">
 						</td>
 					</tr>
@@ -103,31 +107,70 @@
 
 				if (isset($_POST['submit'])) 
 				{
-					$id = $_POST['id'];
+					$id = new ObjectId($_POST['id']);
 					$title = $_POST['title'];
-					$current_image = $_POST['current_image'];
 					$featured = $_POST['featured'];
-					$active = $_POST['actuve'];
+					$active = $_POST['active'];
 
-					$sql2 = "UPDATE tbl_category SET
-						title = '$title',
-						image_name = '$image_name',
-						featured = '$featured',
-						active = '$active'
-						WHERE id = '$id'
-						";
+					if (isset($_FILES['image']['name']))
+					{
+						// Upload Image
+						$new_image = $_FILES['image']['name'];
+						// Auto Rename Image (jpg, png, gif, etc)
 
-					$res2 = mysqli_query($conn, $sql2);
+						// Upload Image Only if image is selected
+						if ($new_image!="") 
+						{
+							$tmp = explode('.', $new_image);
+							$ext = end($tmp);
+							// Rename Image
+							$new_image = "Food_Category_".rand(000, 999).'.'.$ext;
 
-					if ($res2==true) 
+							$source_path = $_FILES['image']['tmp_name'];
+							$destination_path = "./../images/category/".$new_image;
+
+							// Finally Upload Image
+							$upload = move_uploaded_file($source_path, $destination_path);
+
+							
+							// Check Image is Uploaded or Not
+							if ($upload==false) 
+							{
+								// Message
+								$_SESSION['upload'] = "<div class='error'>Failed to Upload Image </div>";
+								header('location:./add-category.php');
+								die();
+							}else{
+								unlink('./../images/category/' . $current_image);
+							}
+						}else
+						{
+							// Dont Upload Image
+							$new_image = $current_image;
+						}
+					}
+
+
+					$result = $db->col_category->updateOne(
+						['_id' => $id],
+						['$set' => [
+							'title' => $title,
+							'image_name' => $new_image,
+							'featured' => $featured,
+							'active' => $active
+						]] 
+					);
+
+
+					if ($result->getModifiedCount() > 0) 
 					{
 						$_SESSION['update'] = "<div class='success'>Update Category Successfully</div>";
-						header('location:'.SITEURL.'admin/manage-category.php');
+						header('location: ./manage-category.php');
 					}
 					else
 					{
 						$_SESSION['update'] = "<div class='error'>Failed to Update Category</div>";
-						header('location:'.SITEURL.'admin/manage-category.php');
+						header('location: ./manage-category.php');
 						// die();
 					}
 				}
@@ -137,4 +180,4 @@
 		</div>
 	</div>
 
-<?php include('partials/footer.php'); ?>
+<?php require __DIR__ . '/partials/footer.php'; ?> 

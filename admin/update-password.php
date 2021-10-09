@@ -1,5 +1,11 @@
-<?php include('partials/menu.php'); ?>
-	
+<?php 
+	require __DIR__ . '/partials/menu.php';
+
+	require '../config/constants.php';
+
+	use MongoDB\BSON\ObjectId;
+?>
+
 	<div class="content">
 		<div class="wrapper">
 			<h1>Change Password</h1>
@@ -16,7 +22,7 @@
 			<?php 
 				if (isset($_GET['id'])) 
 				{
-					$id = $_GET['id'];
+					$id = new ObjectId($_GET['id']);
 				}
 			?>
 			<form action="" method="POST">
@@ -44,7 +50,7 @@
 
 					<tr>
 						<td colspan="2">
-							<input type="hidden" name="id" value="<?php echo $id; ?>">
+							<input type="hidden" name="id" value="<?php echo strval($id); ?>">
 							<input type="submit" name="submit" value="Change Password" class="btn-secondary">
 						</td>
 					</tr>
@@ -56,54 +62,46 @@
 	<?php
 		if(isset($_POST['submit'])) 
 		{
-			$id = $_POST['id'];
+			$id = new ObjectId($_POST['id']);
 			$current_password = md5($_POST['current_password']);
 			$new_password = md5($_POST['new_password']);
 			$confirm_password = md5($_POST['confirm_password']);
 
-			$sql = "SELECT * FROM tbl_admin WHERE id = $id AND password = '$current_password'";
+			$cursor = $db->col_admin->findOne([
+				'_id' => $id,
+				'password' => $current_password
+			]);
 
-			$res = mysqli_query($conn, $sql);
-
-			if($res==true)
-			{
-				$count = mysqli_num_rows($res);
-
-				if($count==1)
+			if($cursor){
+				if($new_password==$confirm_password)
 				{
-					if($new_password==$confirm_password)
+					$result = $db->col_admin->updateOne(
+						['_id' => $id],
+						['$set' => ['password' => $new_password]]
+					);
+					if($result->getModifiedCount() > 0)
 					{
-						// echo "Password Match";
-						$sql2 = "UPDATE tbl_admin SET
-						password = '$new_password'
-						WHERE id = '$id'
-						";
-
-						$res2 = mysqli_query($conn, $sql2);
-						if($res2==true)
-						{
-							$_SESSION['change-pwd'] = "Password Changed Successfuly";
-							header('location:'.SITEURL.'admin/manage-admin.php');
-						}
-						else
-						{
-							$_SESSION['change-pwd'] = "Password did Not Patch";
-							header('location:'.SITEURL.'admin/manage-admin.php');
-						}
+						$_SESSION['change-pwd'] = "Password Changed Successfuly";
+						header('location: ./manage-admin.php');
 					}
 					else
 					{
-						$_SESSION['pwd-not-match'] = "<div class='error'>Password Not Match</div>";
-						header('location:'.SITEURL.'admin/manage-admin.php');
+						$_SESSION['change-pwd'] = "Password did Not Patch";
+						header('location: ./manage-admin.php');
 					}
 				}
 				else
 				{
-					$_SESSION['user-not-found'] = "<div class='error'>User Not Found</div>";
-					header('location:'.SITEURL.'admin/manage-admin.php');
+					$_SESSION['pwd-not-match'] = "<div class='error'>Password Not Match</div>";
+					header('location: ./manage-admin.php');
 				}
+			}
+			else
+			{
+				$_SESSION['user-not-found'] = "<div class='error'>User Not Found</div>";
+				header('location: ./manage-admin.php');
 			}
 		}
 	?>
 
-<?php include('partials/footer.php'); ?>
+<?php require __DIR__ . '/partials/footer.php'; ?>

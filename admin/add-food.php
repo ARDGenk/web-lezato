@@ -1,4 +1,8 @@
-<?php include('partials/menu.php'); ?>
+<?php
+    require '../config/constants.php';
+?>
+
+<?php require __DIR__ . '/partials/menu.php';  ?>
 
 	<div class="content">
 		<div class="wrapper">
@@ -49,32 +53,26 @@
 				<td>
 					<select name="category">
 
-						<?php  
+						<?php 
+							$cursor = $db->col_category->find([
+								'active' => 'Yes'
+							]);
 
-							$sql = "SELECT * FROM tbl_category WHERE active='Yes'";
-							$res = mysqli_query($conn, $sql);
-							$count = mysqli_num_rows($res);
-
-							if ($count>0) 
-							{
-								while ($row = mysqli_fetch_assoc($res)) 
-								{
-									$id = 'id';
-									$title = 'title';
-
-									?>
-									<option value="<?php echo $id; ?>"><?php echo $title; ?></option>
-									<?php
-								}
-							}
-							else
-							{
-								?>
-								<option value="0">No Category Found</option>
-								<?php
-							}
+							if(count($cursor->toArray()) > 0):
+								$cursor = $db->col_category->find([
+									'active' => 'Yes'
+								]);
+                    			foreach ($cursor as $data):
 						?>
-
+									<option value="<?php echo strval($data['_id']); ?>"><?php echo $data['title']; ?></option>
+						<?php
+								endforeach;
+							else:
+						?>
+								<option value="0">No Category Found</option>
+						<?php
+							endif;
+						?>
 						<option value="1">Food</option>
 						<option value="2">Drink</option>
 					</select>
@@ -137,8 +135,7 @@
 			// End Featured & Action Session
 
 			// Image Session
-			if (isset($_FILES['image']['name'])) 
-			{
+			if (isset($_FILES['image']['name'])){
 				$image_name = $_FILES['image']['name'];
 
 				if ($image_name!="") 
@@ -158,39 +155,26 @@
 				}
 			}
 			else
-			{
 				$image_name = "";
-			}
-			// End Image Session
+			$result = $db->col_food->insertOne([
+				'title' => $title,
+				'description' => $description,
+				'price' => $price,
+				'image_name' => $image_name,
+				'category_id' => $category,
+				'featured' => $featured,
+				'active' => $active
+			]);
 
-			// Sql Session
-			$sql2 = "INSERT INTO tbl_food SET
-				title = '$title',
-				description = '$description',
-				price = $price,
-				image_name = '$image_name',
-				category_id = '$category',
-				featured = '$featured',
-				active = '$active'
-			";
-			// End Sql Session
-
-			// Check Data and Redirect Message Session 
-			$res2 = mysqli_query($conn, $sql2);
-
-			if ($res2==true) 
-			{
+			if($result->getInsertedCount() > 0){
 				$_SESSION['add'] = "<div class='succes'>Food Add Successfully</div>";
-				header('location:'.SITEURL.'admin/manage-food.php');
-			}
-			else
-			{
+				header('location: ./manage-food.php');
+			}else{
 				$_SESSION['add'] = "<div class='error'>Failed to Add Food</div>";
-				header('location:'.SITEURL.'admin/manage-food.php');
+				header('location: ./manage-food.php');
 			}
-			// End Check Data and Redirect Message Session
 		}
 
 	?>
 
-<?php include('partials/footer.php'); ?>
+<?php require __DIR__ . '/partials/footer.php'; ?>

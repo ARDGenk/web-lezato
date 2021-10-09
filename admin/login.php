@@ -1,4 +1,7 @@
-<?php include('../config/constants.php'); ?>
+<?php
+	session_start();
+    require '../config/constants.php';
+?>
 
 <!DOCTYPE html>
 <html>
@@ -49,34 +52,22 @@
 <?php 
 	if(isset($_POST['submit']))
 	{
-		// Proses Login
-		// $username = $_POST['username'];
-		// $password = md5($_POST['password']);
-		$username = mysqli_real_escape_string($conn, $_POST['username']);
-		$raw_password = md5($_POST['password']);
-		$password = mysqli_real_escape_string($conn, $raw_password);
+		$username = $_POST['username'];
+		$password = md5($_POST['password']);
 
 		// SQL
-		$sql = "SELECT * FROM tbl_admin WHERE username = '$username' AND PASSWORD = '$password'";
+		$cursor = $db->col_admin->findOne([
+			'username' => $username,
+			'password' => $password
+		]);
 
-		// Query
-		$res = mysqli_query($conn, $sql);
-
-		// Tabel
-		$count = mysqli_num_rows($res);
-
-		if($count==1)
-		{
-			// Login Sukses
+		if($cursor){
 			$_SESSION['login'] = "<div class='success text-center'>Login Berhasil</div>";
 			$_SESSION['user'] = $username;
-			header('location:'.SITEURL.'admin/');
-		}
-		else
-		{
-			// Login Gagal
+			header('location: ./../admin/');
+		}else{
 			$_SESSION['login'] = "<div class='error text-center'>Username atau Password yang anda masukan salah</div>";
-			header('location:'.SITEURL.'admin/login.php');
+			header('location: ./login.php');
 		}
 	}
 ?>

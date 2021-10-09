@@ -1,4 +1,10 @@
-<?php include('partials/menu.php'); ?>
+<?php 
+	require __DIR__ . '/partials/menu.php';
+
+	require '../config/constants.php';
+
+	use MongoDB\BSON\ObjectId;
+?>
 
 	<div class="content">
 		<div class="wrapper">
@@ -15,26 +21,17 @@
 
 			?>
 			<?php
-				$id=$_GET['id'];
-				$sql="SELECT * FROM tbl_admin WHERE id=$id";
-				$res=mysqli_query($conn, $sql);
+				$id= new ObjectId($_GET['id']);
 
-				if($res==true)
-				{
-					$count = mysqli_num_rows($res);
-					if($count==1)
-					{
-						// echo "Admin Available";
-						$row=mysqli_fetch_assoc($res);
+				$cursor = $db->col_admin->findOne([
+					'_id' => $id
+				]);
 
-						$full_name=$row['full_name'];
-						$username=$row['username'];
-					}
-					else
-					{
-						header('location:'.SITEURL.'admin/manage-admin.php');
-					}
-				}
+				if($cursor){
+					$full_name = $cursor['full_name'];
+					$username = $cursor['username'];
+				}else
+					header('location: ./manage-admin.php');
 			?>
 
 			<form action="" method="POST">
@@ -51,7 +48,7 @@
 
 					<tr>
 						<td colspan="2">
-							<input type="hidden" name="id" value="<?php echo $id; ?>">
+							<input type="hidden" name="id" value="<?php echo strval($id); ?>">
 							<input type="submit" name="submit" value="Update Admin" class="btn-secondary">
 						</td>
 					</tr>
@@ -65,32 +62,33 @@
 		if(isset($_POST['submit']))
 		{
 			 // echo "Button Clicked";
-			$id = $_POST['id'];
+			$id = new ObjectId($_POST['id']);
 			$full_name = $_POST['full_name'];
 			$username = $_POST['username'];
 
-			$sql = "UPDATE tbl_admin SET
-			full_name = '$full_name',
-			username = '$username'
-			WHERE id = '$id'
-			";
+			$result = $db->col_admin->updateOne(
+				['_id' => $id],
+				['$set' => [
+					'full_name' => $full_name,
+					'username' => $username
+				]]
+			);
+			
 
-			$res = mysqli_query($conn, $sql);
-
-			if($res==true)
+			if($result->getModifiedCount() > 0)
 			{
 				$_SESSION['up'] = "<div class='success'>Admin Update Successfuly</div>";
-				header('location:'.SITEURL.'admin/manage-admin.php');
+				header('location: ./manage-admin.php');
 				// return true;
 			}
 			else
 			{
 				$_SESSION['up'] = "<div class='error'>Failed to Update Admin</div>";
-				header('location:'.SITEURL.'admin/manage-admin.php');
+				header('location: ./manage-admin.php');
 				// return false;
 			}
 		}
 
 	?>
 
-<?php include('partials/footer.php'); ?>
+<?php require __DIR__ . '/partials/footer.php'; ?>

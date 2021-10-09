@@ -1,4 +1,8 @@
-<?php include('partials/menu.php'); ?>
+<?php
+    require '../config/constants.php';
+?>
+
+<?php require __DIR__ . '/partials/menu.php';  ?>
 
 	<div class="content">
 		<div class="wrapper">
@@ -115,7 +119,7 @@
 						$image_name = "Food_Category_".rand(000, 999).'.'.$ext;
 
 						$source_path = $_FILES['image']['tmp_name'];
-						$destination_path = "../images/category/".$image_name;
+						$destination_path = "./../images/category/".$image_name;
 
 						// Finally Upload Image
 						$upload = move_uploaded_file($source_path, $destination_path);
@@ -125,7 +129,7 @@
 						{
 							// Message
 							$_SESSION['upload'] = "<div class='error'>Failed to Upload Image </div>";
-							header('location:'.SITEURL.'admin/add-category.php');
+							header('location:./add-category.php');
 							die();
 						}
 						}
@@ -136,32 +140,23 @@
 						$image_name = "";
 					}
 
-					// Sql Query to Database
-					$sql = "INSERT INTO tbl_category SET
-						title = '$title',
-						image_name = '$image_name',
-						featured = '$featured',
-						active = '$active'
-						";
+					$result = $db->col_category->insertOne([
+						'title' => $title,
+					    'image_name' => $image_name,
+				        'active' => $active,
+				        'featured' => $featured
+				    ]);
 
-					// Exeute Query
-					$res = mysqli_query($conn, $sql);
-
-					// Check
-					if ($res==true) 
-					{
-						// code...
-						$_SESSION['add'] = "<div class='success'>Category Add Successfuly</div>";
-						header('location:'.SITEURL.'admin/manage-category.php');
-					}
-					else
-					{
-						$_SESSION['add'] = "<div class='error'>Sorry, Failed to Add Category</div>";
-						header('location:'.SITEURL.'admin/add-category.php');
-					}
+				    if($result->getInsertedCount() > 0){
+				    	$_SESSION['add'] = "<div class='success'>Category Add Successfuly</div>";
+						header('location: ./manage-category.php');
+				    }else{
+				    	$_SESSION['add'] = "<div class='error'>Sorry, Failed to Add Category</div>";
+						header('location: ./add-category.php');
+				    }
 				}
 			?>
 		</div>
 	</div>
 
-<?php include('partials/footer.php'); ?>
+<?php require __DIR__ . '/partials/footer.php'; ?>

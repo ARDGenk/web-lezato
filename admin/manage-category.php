@@ -1,4 +1,8 @@
-<?php include('partials/menu.php') ?>
+<?php
+    require '../config/constants.php';
+?>
+
+<?php require __DIR__ . '/partials/menu.php';  ?>
 
 <div class="content">
 	<div class="wrapper">
@@ -40,7 +44,7 @@
 		<br><br>
 		
 		<!-- Button -->
-			<a href="<?php echo SITEURL; ?>admin/add-category.php" class="btn-primary">Add Category</a>
+			<a href="./add-category.php" class="btn-primary">Add Category</a>
 		<!-- End Button -->
 
 		<table class="tbl-full">
@@ -54,79 +58,55 @@
 			</tr>
 
 				<?php 
+					$cursor = $db->col_category->find();
 
-					// Query Category from Database
-					$sql = "SELECT * FROM tbl_category";
-
-					// Execute Query
-					$res = mysqli_query($conn, $sql);
-
-					// Count Rows
-					$count = mysqli_num_rows($res);
-
-					// Number
 					$sn=1;
 
 					// Check in Database
-					if ($count>0) 
-					{
-						// Data in Database
-						// Get the data and Display
-						while ($row = mysqli_fetch_assoc($res)) 
-						{
-							$id = $row['id'];
-							$title = $row['title'];
-							$image_name = $row['image_name'];
-							$featured = $row['featured'];
-							$active = $row['active'];
-						}
+					if(count($cursor->toArray()) > 0):
+						$cursor = $db->col_category->find();
+						foreach ($cursor as $data):
 				?>
-		
-				<tr>
-					<td><?php echo $sn++; ?></td>
-					<td><?php echo $title; ?></td>
-					<td>
-						<?php 
-							// Check Image Name
-							if ($image_name!="") 
-							{
-								// Display Image
-								?>
-								<img src="<?php echo SITEURL; ?>images/category/<?php echo $image_name; ?>" width="100px">
+							<tr>
+								<td><?php echo $sn++; ?></td>
+								<td><?php echo $data['title']; ?></td>
+								<td>
+									<?php 
+										// Check Image Name
+										if ($data['image_name']!=""):
+											// Display Image
+									?>
+											<img src="./../images/category/<?php echo $data['image_name']; ?>" width="100px">
 
-								<?php 
-							}
-							else
-							{
-								// Display Message
-								echo "<div class='error'>Image not Add</div>";
-							}
-						?>	
-					</td>
-					<td><?php echo $featured; ?></td>
-					<td><?php echo $active; ?></td>
-					<td>
-					<a href="<?php echo SITEURL; ?>admin/update-category.php?id=<?php echo $id; ?>" class="btn-secondary">Update Category</a>
-					<a href="<?php echo SITEURL; ?>admin/delete-category.php?id=<?php echo $id; ?>&image_name=<?php echo $image_name; ?>" class="btn-danger">Delete Category</a>
-					</td>
-				</tr>
-						<?php
-					}
-					else
-					{
+									<?php 
+										else:
+											// Display Message
+											echo "<div class='error'>Image not Add</div>";
+										endif;
+									?>	
+								</td>
+								<td><?php echo $data['featured']; ?></td>
+								<td><?php echo $data['active']; ?></td>
+								<td>
+								<a href="./update-category.php?id=<?php echo strval($data['_id']); ?>" class="btn-secondary">Update Category</a>
+								<a href="./delete-category.php?id=<?php echo strval($data['_id']); ?>&image_name=<?php echo $data['image_name']; ?>" class="btn-danger">Delete Category</a>
+								</td>
+							</tr>
+				<?php
+						endforeach;
+					else:
 						// Do not Data in Database
 						// Display Message
-						?>
+				?>
 						<tr>
 							<td colspan="6"><div class="error">No Category Add</div></td>
 						</tr>
-						<?php
-					}
+				<?php
+					endif;
 				?>
 
 		</table>
 	</div>
 </div>
 
-
-<?php include('partials/footer.php') ?>
+<?php require __DIR__ . '/partials/footer.php';  ?>
